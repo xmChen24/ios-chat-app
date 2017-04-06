@@ -10,10 +10,15 @@ import UIKit
 
 class LoginViewController: UIViewController {
 
+    @IBOutlet weak var anonymousButton: UIButton!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
         // Do any additional setup after loading the view.
+        
+        anonymousButton.layer.borderWidth = 3.0
+        anonymousButton.layer.borderColor = UIColor.white.cgColor
     }
 
     override func didReceiveMemoryWarning() {
