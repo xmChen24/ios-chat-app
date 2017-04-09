@@ -7,9 +7,10 @@
 //
 
 import UIKit
-import FirebaseAuth
+import GoogleSignIn
 
-class LoginViewController: UIViewController {
+
+class LoginViewController: UIViewController, GIDSignInUIDelegate, GIDSignInDelegate {
 
     @IBOutlet weak var anonymousButton: UIButton!
     
@@ -20,6 +21,12 @@ class LoginViewController: UIViewController {
         
         anonymousButton.layer.borderWidth = 3.0
         anonymousButton.layer.borderColor = UIColor.white.cgColor
+        
+        //let google who you are using the client id.
+        GIDSignIn.sharedInstance().clientID = "1037138186783-knsv60gg80ct7mujbplllb9ttru587a3.apps.googleusercontent.com"
+        //display the UI for the user to input their google accounts. Here we use the loginViewController itself. You can use other
+        GIDSignIn.sharedInstance().uiDelegate = self
+        GIDSignIn.sharedInstance().delegate = self
     }
 
     override func didReceiveMemoryWarning() {
@@ -28,34 +35,19 @@ class LoginViewController: UIViewController {
     }
     
     @IBAction func loginAnonymouslyDidTapped(_ sender: Any) {
-        
-        //login anonymously using FirebaseAuth anonymous users
-        FIRAuth.auth()?.signInAnonymously(completion: { (anonymousUser: FIRUser?, error: Error?) in
-            if error == nil {
-                print("UserId: \(anonymousUser!.uid)")
-            } else {
-                print(error!.localizedDescription)
-                return 
-            }
-        })
-        
-        
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let naviVC = storyboard.instantiateViewController(withIdentifier: "NavigationVC") as! UINavigationController
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        
-        appDelegate.window?.rootViewController = naviVC
-        
+
+        //use a helper class which use Firebase
+        Helper.helper.loginAnonymously();
     }
 
     @IBAction func googleLoginDidTapped(_ sender: Any) {
-        
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        let naviVC = storyboard.instantiateViewController(withIdentifier: "NavigationVC") as! UINavigationController
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        
-        appDelegate.window?.rootViewController = naviVC
+        GIDSignIn.sharedInstance().signIn()
     }
+    
+    func sign(_ signIn: GIDSignIn!, didSignInFor user: GIDGoogleUser!, withError error: Error!) {
+        Helper.helper.loginWithGoogle(authentication: user.authentication)
+    }
+    
     /*
     // MARK: - Navigation
 
