@@ -9,7 +9,6 @@
 import UIKit
 import GoogleSignIn
 
-
 class LoginViewController: UIViewController, GIDSignInUIDelegate, GIDSignInDelegate {
 
     @IBOutlet weak var anonymousButton: UIButton!
