@@ -8,6 +8,8 @@
 
 import UIKit
 import JSQMessagesViewController
+import MobileCoreServices
+import AVKit
 
 class ChatViewController: JSQMessagesViewController {
     
@@ -34,9 +36,35 @@ class ChatViewController: JSQMessagesViewController {
     override func didPressAccessoryButton(_ sender: UIButton!) {
         print("didPressAccessoryButton")
         
-        let imagePicker = UIImagePickerController()
-        imagePicker.delegate = self
-        self.present(imagePicker, animated: true, completion: nil)
+        let sheet = UIAlertController(title: "Media Message", message: "Please select a media", preferredStyle: UIAlertControllerStyle.actionSheet)
+        let cancel = UIAlertAction(title: "cancel", style: UIAlertActionStyle.cancel) { (alert: UIAlertAction) in
+            
+        }
+        
+        let photoLibrary = UIAlertAction(title: "Photo Library", style: UIAlertActionStyle.default) { (alert: UIAlertAction) in
+            self.getMediaFrom(type: kUTTypeImage)
+        }
+        
+        let videoLibrary = UIAlertAction(title: "Video Library", style: UIAlertActionStyle.default) { (alert: UIAlertAction) in
+            self.getMediaFrom(type: kUTTypeMovie)
+        }
+        
+        sheet.addAction(photoLibrary)
+        sheet.addAction(videoLibrary)
+        sheet.addAction(cancel)
+        self.present(sheet, animated: true, completion: nil)
+        
+   //     let imagePicker = UIImagePickerController()
+   //     imagePicker.delegate = self
+    //    self.present(imagePicker, animated: true, completion: nil)
+    }
+    
+    func getMediaFrom(type: CFString) {
+        let mediaPicker = UIImagePickerController()
+        mediaPicker.delegate = self
+        mediaPicker.mediaTypes = [type as String]
+        self.present(mediaPicker, animated: true, completion: nil)
+    
     }
     
     override func collectionView(_ collectionView: JSQMessagesCollectionView!, messageDataForItemAt indexPath: IndexPath!) -> JSQMessageData! {
@@ -60,6 +88,20 @@ class ChatViewController: JSQMessagesViewController {
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = super.collectionView(collectionView, cellForItemAt: indexPath) as! JSQMessagesCollectionViewCell
         return cell
+    }
+    
+    override func collectionView(_ collectionView: JSQMessagesCollectionView!, didTapMessageBubbleAt indexPath: IndexPath!) {
+        print("didTapMessageBubbleAtIndexPath \(indexPath.item)")
+        let message = messages[indexPath.item]
+        if message.isMediaMessage {
+            if let mediaItem = message.media as? JSQVideoMediaItem {
+            let player = AVPlayer(url: mediaItem.fileURL)
+            let playerViewController = AVPlayerViewController()
+            playerViewController.player = player
+            self.present(playerViewController, animated: true, completion: nil)
+            }
+        }
+        
     }
 
     override func didReceiveMemoryWarning() {
@@ -94,9 +136,17 @@ extension ChatViewController: UIImagePickerControllerDelegate, UINavigationContr
         print("did finish picking")
         // get the image
         print(info)
-        let picture = info[UIImagePickerControllerOriginalImage] as? UIImage
-        let photo = JSQPhotoMediaItem(image: picture!)
-        messages.append(JSQMessage(senderId: senderId!, displayName: senderDisplayName!, media: photo))
+        
+        if let picture = info[UIImagePickerControllerOriginalImage] as? UIImage {
+       
+            let photo = JSQPhotoMediaItem(image: picture)
+            messages.append(JSQMessage(senderId: senderId!, displayName: senderDisplayName!, media: photo))
+        }
+        else if let video = info[UIImagePickerControllerMediaURL] as? NSURL {
+            let videoItem = JSQVideoMediaItem(fileURL: video as URL!, isReadyToPlay: true)
+            messages.append(JSQMessage(senderId: senderId!, displayName: senderDisplayName!, media: videoItem))
+        }
+        
         self.dismiss(animated: true, completion: nil)
         collectionView.reloadData()
         
