@@ -10,6 +10,7 @@ import UIKit
 import JSQMessagesViewController
 import MobileCoreServices
 import AVKit
+import FirebaseDatabase
 
 class ChatViewController: JSQMessagesViewController {
     
@@ -21,6 +22,23 @@ class ChatViewController: JSQMessagesViewController {
         self.senderId = "1"
         self.senderDisplayName = "Xiaoming Chen "
         // Do any additional setup after loading the view.
+        let rootRef = FIRDatabase.database().reference()
+        let messsageRef = rootRef.child("messages")
+        
+        print(rootRef)
+        print(messsageRef)
+
+        messsageRef.childByAutoId().setValue("The fat cat")
+        messsageRef.childByAutoId().setValue("The naughty cat")
+        //retrive data from firabase
+        messsageRef.observe(FIRDataEventType.value, with: { (snapshot: FIRDataSnapshot) in
+            print(snapshot.value)
+            
+            if let dict = snapshot.value as? NSDictionary {
+                print(dict)
+            }
+        })
+
     }
     
     override func didPressSend(_ button: UIButton!, withMessageText text: String!, senderId: String!, senderDisplayName: String!, date: Date!) {
